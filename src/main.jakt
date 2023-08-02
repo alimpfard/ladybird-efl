@@ -1,0 +1,187 @@
+import jakt::platform::utility { null }
+import tab { TabPager }
+
+import extern c "Elementary.h" before_include define { EFL_BETA_API_SUPPORT = "1" }
+
+fn bitcast<U, T>(anon x: T) -> U
+{
+    mut res = null<U>()
+    unsafe { cpp { "memcpy(&res, &x, sizeof x);" } }
+    return res
+}
+
+fn convert_to<U, T>(anon x: T) -> U
+{
+    mut res = 0 as! U
+    unsafe { cpp { "res = static_cast<decltype(res)>(x);" } }
+    return res
+}
+
+fn data_dir() throws -> String
+{
+    let length = strlen(elm_app_data_dir_get())
+    mut builder = StringBuilder::create()
+    builder.append(string: elm_app_data_dir_get(), size: length as! usize)
+    return builder.to_string()
+}
+
+class Button {
+    public widget: raw _Eo_Opaque
+    public on_click: fn() -> void
+
+    public fn create(widget: raw _Eo_Opaque) throws -> Button
+    {
+        let button = Button(
+            widget
+            on_click: fn() -> void {}
+        )
+
+        evas_object_smart_callback_add(
+            widget
+            "clicked".c_string()
+            fn(data: raw void, obj: raw _Eo_Opaque, event_info: raw void)
+            {
+                mut self = bitcast<raw Button>(data)
+                let button = unsafe *self
+                let f = &button.on_click
+                f()
+            }
+            bitcast<raw void>(&raw button)
+        )
+
+        return button
+    }
+}
+
+fn main() throws -> c_int
+{
+    elm_init(0, null<raw raw c_char>())
+    defer elm_shutdown()
+
+    elm_policy_set(ELM_POLICY_QUIT as! u32, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED as! c_int)
+
+    // +-----------------w-----------------+
+    // |+---------------------------------+| ^
+    // || <-x-> <-x-> <-x-> <-----z-----> || |
+    // || ^   ^ ^   ^ ^   ^ ^           ^ || 6
+    // |x x 1 x x 2 x x 3 x x     4     x || |
+    // || v   v v   v v   v v           v || |
+    // |+---------------------------------+| v
+    // h^                                 ^| ^
+    // ||                                 || |
+    // |y               5                 y| |
+    // ||                                 || 7
+    // |v                                 v| |
+    // |+---------------------------------+| |
+    // +-----------------------------------+ v
+    //
+    // w: window width
+    // h: window height
+    // x: elm_config_scale_get() * 50px
+    // y: h - x
+    // z: w - x * 3
+    // widget 1: button{label="view-back", icon="arrow_left"}
+    // widget 2: button{label="view-next", icon="arrow_right"}
+    // widget 3: button{label="view-refresh", icon="refresh"}
+    // widget 4: entry{label="url"}
+    // widget 5: image{file=mem}
+    // widget 6: box{max_height=x, name=top_box, horizontal}
+    // widget 7: box{name=viewport_box}
+
+    let win = elm_win_util_standard_add(
+        name: "ladybird".c_string()
+        title: "Ladybird-EFL".c_string()
+    )
+    elm_win_autodel_set(win, EINA_TRUE)
+
+    let top_bar_height = convert_to<c_int>(50f64 * elm_config_scale_get())
+
+    let window_box = elm_box_add(win)
+    evas_object_size_hint_weight_set(window_box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND)
+    evas_object_size_hint_align_set(window_box, EVAS_HINT_FILL, EVAS_HINT_FILL)
+    evas_object_show(window_box)
+    elm_win_resize_object_add(win, window_box)
+
+    let top_box = elm_box_add(win)
+    elm_box_horizontal_set(top_box, EINA_TRUE)
+    evas_object_size_hint_weight_set(top_box, EVAS_HINT_EXPAND, 0.0)
+    evas_object_size_hint_align_set(top_box, EVAS_HINT_FILL, EVAS_HINT_FILL)
+    evas_object_size_hint_min_set(top_box, top_bar_height, top_bar_height)
+    evas_object_show(top_box)
+
+    mut tab_pager = TabPager::create(win, top_bar_height)
+    tab_pager.add_tab(title: "Home")
+
+    let viewport_box = elm_box_add(win)
+    evas_object_size_hint_weight_set(viewport_box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND)
+    evas_object_size_hint_align_set(viewport_box, EVAS_HINT_FILL, EVAS_HINT_FILL)
+    evas_object_show(viewport_box)
+
+    elm_box_pack_end(window_box, top_box)
+    elm_box_pack_end(window_box, tab_pager.widget)
+    elm_box_pack_end(window_box, viewport_box)
+
+    let add_button = fn[
+        win, top_box, top_bar_height
+    ](icon: String? = None, text: String? = None) throws -> Button {
+        let button = elm_button_add(win)
+        if text is Some(string) {
+            efl_text_set(button, string.c_string())
+        } else if icon is Some(icon_name) {
+            elm_object_part_content_set(button, part: "icon".c_string(), content: elm_icon_add(win))
+            elm_icon_standard_set(elm_object_part_content_get(button, "icon".c_string()), icon_name.c_string())
+        }
+        evas_object_size_hint_weight_set(button, 0.0, 0.0)
+        evas_object_size_hint_align_set(button, EVAS_HINT_FILL, EVAS_HINT_FILL)
+        evas_object_size_hint_min_set(button, top_bar_height, top_bar_height)
+        evas_object_show(button)
+        return Button::create(widget: button)
+    }
+
+    let back_button = add_button(icon: "go-previous")
+    let next_button = add_button(icon: "go-next")
+    let refresh_button = add_button(icon: "menu/refresh")
+
+    let url_entry = elm_entry_add(win)
+    elm_entry_single_line_set(url_entry, EINA_TRUE)
+    evas_object_size_hint_weight_set(url_entry, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND)
+    evas_object_size_hint_align_set(url_entry, EVAS_HINT_FILL, EVAS_HINT_FILL)
+    evas_object_size_hint_min_set(url_entry, -1, top_bar_height)
+    evas_object_show(url_entry)
+
+    mut add_tab_button = add_button(text: "+")
+    add_tab_button.on_click = fn[&tab_pager]() {
+        let result = try tab_pager.add_tab(title: "New Tab")
+        if result is Some(id) {
+            tab_pager.switch_to(id)
+        }
+    }
+
+    let viewport = elm_image_add(win)
+    evas_object_size_hint_weight_set(viewport, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND)
+    evas_object_size_hint_align_set(viewport, EVAS_HINT_FILL, EVAS_HINT_FILL)
+    evas_object_show(viewport)
+
+    elm_box_pack_end(top_box, back_button.widget)
+    elm_box_pack_end(top_box, next_button.widget)
+    elm_box_pack_end(top_box, refresh_button.widget)
+    elm_box_pack_end(top_box, url_entry)
+    elm_box_pack_end(top_box, add_tab_button.widget)
+    elm_box_pack_end(viewport_box, viewport)
+
+    let theme_path = data_dir() + "/elementary/test.edj"
+    elm_theme_extension_add(null<raw Elm_Theme>(), theme_path.c_string())
+    elm_theme_set(null<raw Elm_Theme>(), theme_path.c_string())
+
+    evas_object_resize(win
+        convert_to<c_int>(420f64 * elm_config_scale_get())
+        convert_to<c_int>(250f64 * elm_config_scale_get())
+    )
+
+    evas_object_show(win)
+
+    tab_pager.navigate_to_html("<html><body><h1>Hello, World!</h1></body></html>", "http://example.com")
+
+    elm_run()
+    return 0
+}

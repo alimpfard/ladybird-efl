@@ -1,0 +1,278 @@
+import extern "LibWebView/ViewImplementation.h"
+import extern "LibGfx/Font/FontDatabase.h"
+
+class ViewImpl : WebView::ViewImplementation {
+    public fn create() throws -> ViewImpl {
+        mut impl = ViewImpl(WebView::UseJavaScriptBytecode::Yes)
+        impl.create_client(enable_callgrind_profiling: WebView::EnableCallgrindProfiling::No)
+        return impl
+    }
+
+    // ^ ViewImplementation
+    virtual fn notify_server_did_layout(
+        mut this
+        mut badge: AK::Badge<UnderlyingClassTypeOf<WebView::WebContentClient>>
+        mut content_size: Gfx::Size<c_int>
+    ) {
+        eprintln("notify_server_did_layout")
+    }
+
+    virtual fn notify_server_did_paint(
+        mut this
+        mut badge: AK::Badge<UnderlyingClassTypeOf<WebView::WebContentClient>>
+        mut bitmap_id: i32
+        mut size: Gfx::Size<c_int>
+    ) {
+        eprintln("notify_server_did_paint")
+    }
+
+    virtual fn notify_server_did_invalidate_content_rect(
+        mut this
+        mut badge: AK::Badge<UnderlyingClassTypeOf<WebView::WebContentClient>>
+        rect: &Gfx::Rect<c_int>
+    ) {
+        eprintln("notify_server_did_invalidate_content_rect")
+    }
+
+    virtual fn notify_server_did_change_selection(
+        mut this
+        mut badge: AK::Badge<UnderlyingClassTypeOf<WebView::WebContentClient>>
+    ) {
+        eprintln("notify_server_did_change_selection")
+    }
+
+    virtual fn notify_server_did_request_cursor_change(
+        mut this
+        mut badge: AK::Badge<UnderlyingClassTypeOf<WebView::WebContentClient>>
+        mut cursor: Gfx::StandardCursor
+    ) {
+        eprintln("notify_server_did_request_cursor_change")
+    }
+
+    virtual fn notify_server_did_request_scroll(
+        mut this
+        mut badge: AK::Badge<UnderlyingClassTypeOf<WebView::WebContentClient>>
+        mut x: i32
+        mut y: i32
+    ) {
+        eprintln("notify_server_did_request_scroll")
+    }
+
+    virtual fn notify_server_did_request_scroll_to(
+        mut this
+        mut badge: AK::Badge<UnderlyingClassTypeOf<WebView::WebContentClient>>
+        mut point: Gfx::Point<c_int>
+    ) {
+        eprintln("notify_server_did_request_scroll_to")
+    }
+
+    virtual fn notify_server_did_request_scroll_into_view(
+        mut this
+        mut badge: AK::Badge<UnderlyingClassTypeOf<WebView::WebContentClient>>
+        rect: &Gfx::Rect<c_int>
+    ) {
+        eprintln("notify_server_did_request_scroll_into_view")
+    }
+
+    virtual fn notify_server_did_enter_tooltip_area(
+        mut this
+        mut badge: AK::Badge<UnderlyingClassTypeOf<WebView::WebContentClient>>
+        mut point: Gfx::Point<c_int>
+        text: &String
+    ) {
+        eprintln("notify_server_did_enter_tooltip_area")
+    }
+
+    virtual fn notify_server_did_leave_tooltip_area(
+        mut this
+        mut badge: AK::Badge<UnderlyingClassTypeOf<WebView::WebContentClient>>
+    ) {
+        eprintln("notify_server_did_leave_tooltip_area")
+    }
+
+    virtual fn notify_server_did_request_alert(
+        mut this
+        mut badge: AK::Badge<UnderlyingClassTypeOf<WebView::WebContentClient>>
+        message: &AK::String
+    ) {
+        eprintln("notify_server_did_request_alert")
+    }
+
+    virtual fn notify_server_did_request_confirm(
+        mut this
+        mut badge: AK::Badge<UnderlyingClassTypeOf<WebView::WebContentClient>>
+        message: &AK::String
+    ) {
+        eprintln("notify_server_did_request_confirm")
+    }
+
+    virtual fn notify_server_did_request_prompt(
+        mut this
+        mut badge: AK::Badge<UnderlyingClassTypeOf<WebView::WebContentClient>>
+        message: &AK::String
+        default_: &AK::String
+    ) {
+        eprintln("notify_server_did_request_prompt")
+    }
+
+    virtual fn notify_server_did_request_set_prompt_text(
+        mut this
+        mut badge: AK::Badge<UnderlyingClassTypeOf<WebView::WebContentClient>>
+        message: &AK::String
+    ) {
+        eprintln("notify_server_did_request_set_prompt_text")
+    }
+
+    virtual fn notify_server_did_request_accept_dialog(
+        mut this
+        mut badge: AK::Badge<UnderlyingClassTypeOf<WebView::WebContentClient>>
+    ) {
+        eprintln("notify_server_did_request_accept_dialog")
+    }
+
+    virtual fn notify_server_did_request_dismiss_dialog(
+        mut this
+        mut badge: AK::Badge<UnderlyingClassTypeOf<WebView::WebContentClient>>
+    ) {
+        eprintln("notify_server_did_request_dismiss_dialog")
+    }
+
+    virtual fn notify_server_did_request_file(
+        mut this
+        mut badge: AK::Badge<UnderlyingClassTypeOf<WebView::WebContentClient>>
+        path: &String
+        mut id: i32
+    ) {
+        eprintln("notify_server_did_request_file")
+    }
+
+    virtual fn notify_server_did_finish_handling_input_event(
+        mut this
+        mut event_was_accepted: bool
+    ) {
+        eprintln("notify_server_did_finish_handling_input_event")
+    }
+
+    virtual fn update_zoom(mut this) {
+        eprintln("update_zoom")
+    }
+
+    virtual fn viewport_rect(this) -> Gfx::Rect<c_int> {
+        eprintln("viewport_rect")
+        return Gfx::Rect(x: 0 as! c_int, y: 0 as! c_int, width: 0 as! c_int, height: 0 as! c_int)
+    }
+
+    virtual fn to_content_position(
+        this
+        mut widget_position: Gfx::Point<c_int>
+    ) -> Gfx::Point<c_int> {
+        eprintln("to_content_position")
+        return Gfx::Point(x: 0 as! c_int, y: 0 as! c_int)
+    }
+
+    virtual fn to_widget_position(
+        this
+        mut content_position: Gfx::Point<c_int>
+    ) -> Gfx::Point<c_int> {
+        eprintln("to_widget_position")
+        return Gfx::Point(x: 0 as! c_int, y: 0 as! c_int)
+    }
+
+    virtual fn create_client(
+        mut this
+        mut enable_callgrind_profiling: WebView::EnableCallgrindProfiling
+    ) {
+        try {
+            mut candidate_web_content_paths = [
+                "./WebContent"
+                "/home/test/Workspace/serenity/Build/lagom/bin/WebContent"
+            ]
+            mut new_client = launch_web_content_process(
+                this
+                candidate_web_content_paths
+                enable_callgrind_profiling
+            )
+            new_client.on_web_content_process_crash = fn[this]() {
+                eprintln("on_web_content_process_crash")
+            }
+        } catch e {
+            eprintln("create_client failed: {}", e)
+        }
+    }
+}
+
+fn launch_web_content_process(
+    anon view_impl: ViewImpl
+    candidate_web_content_paths: [String]
+    enable_callgrind_profiling: WebView::EnableCallgrindProfiling
+) throws -> WebView::WebContentClient {
+    // FIXME: this whole thing
+    unsafe { cpp { "
+    int socket_fds[2] {};
+    TRY(Core::System::socketpair(AF_LOCAL, SOCK_STREAM, 0, socket_fds));
+
+    int ui_fd = socket_fds[0];
+    int wc_fd = socket_fds[1];
+
+    int fd_passing_socket_fds[2] {};
+    TRY(Core::System::socketpair(AF_LOCAL, SOCK_STREAM, 0, fd_passing_socket_fds));
+
+    int ui_fd_passing_fd = fd_passing_socket_fds[0];
+    int wc_fd_passing_fd = fd_passing_socket_fds[1];
+
+    if (auto child_pid = TRY(Core::System::fork()); child_pid == 0) {
+        TRY(Core::System::close(ui_fd_passing_fd));
+        TRY(Core::System::close(ui_fd));
+
+        auto takeover_string = TRY(String::formatted(\"WebContent:{}\", wc_fd));
+        TRY(Core::System::setenv(\"SOCKET_TAKEOVER\"sv, takeover_string, true));
+
+        auto webcontent_fd_passing_socket_string = TRY(String::number(wc_fd_passing_fd));
+
+        ErrorOr<void> result;
+        for (size_t i = 0; i < candidate_web_content_paths.size(); ++i) {
+            auto const& path = candidate_web_content_paths.at(i);
+            constexpr auto callgrind_prefix_length = 3;
+
+            if (Core::System::access(path, X_OK).is_error())
+                continue;
+            auto arguments = Vector {
+                \"valgrind\"sv,
+                \"--tool=callgrind\"sv,
+                \"--instr-atstart=no\"sv,
+                path.view(),
+                \"--webcontent-fd-passing-socket\"sv,
+                webcontent_fd_passing_socket_string
+            };
+            if (enable_callgrind_profiling == WebView::EnableCallgrindProfiling::No)
+                arguments.remove(0, callgrind_prefix_length);
+
+            result = Core::System::exec(arguments[0], arguments.span(), Core::System::SearchInPath::Yes);
+            if (!result.is_error())
+                break;
+        }
+
+        if (result.is_error())
+            warnln(\"Could not launch any of {}: {}\", candidate_web_content_paths, result.error());
+        VERIFY_NOT_REACHED();
+    }
+    TRY(Core::System::close(wc_fd_passing_fd));
+    TRY(Core::System::close(wc_fd));
+
+    auto socket = TRY(Core::LocalSocket::adopt_fd(ui_fd));
+    TRY(socket->set_blocking(true));
+
+    auto new_client = TRY(adopt_nonnull_ref_or_enomem(new (nothrow) WebView::WebContentClient(move(socket), view_impl)));
+    new_client->set_fd_passing_socket(TRY(Core::LocalSocket::adopt_fd(ui_fd_passing_fd)));
+
+    if (enable_callgrind_profiling == WebView::EnableCallgrindProfiling::Yes) {
+        dbgln();
+        dbgln(\"\033[1;45mLaunched WebContent process under callgrind!\033[0m\");
+        dbgln(\"\033[100mRun `\033[4mcallgrind_control -i on\033[24m` to start instrumentation and `\033[4mcallgrind_control -i off\033[24m` stop it again.\033[0m\");
+        dbgln();
+    }
+
+    return new_client;
+    " } }
+    abort()
+}

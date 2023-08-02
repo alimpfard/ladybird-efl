@@ -1,0 +1,109 @@
+import extern c "Elementary.h" as efl
+import extern "LibCore/EventLoopImplementation.h"
+
+struct EventLoopManagerEcore : Core::EventLoopManager {
+    destructor { }
+
+    virtual fn make_implementation(mut this) -> AK::NonnullOwnPtr<Core::EventLoopImplementation> {
+        abort()
+    }
+
+    virtual fn register_timer(
+        mut this
+        anon obj: &mut UnderlyingClassTypeOf<Core::Object>
+        mut milliseconds: c_int
+        mut should_reload: bool
+        mut should_fire_when_not_visible: Core::TimerShouldFireWhenNotVisible
+    ) -> c_int {
+        abort()
+    }
+
+    virtual fn unregister_timer(
+        mut this
+        mut timer_id: c_int
+    ) -> bool {
+        abort()
+    }
+
+    virtual fn register_notifier(
+        mut this
+        notifier: &mut UnderlyingClassTypeOf<Core::Notifier>
+    ) {
+        abort()
+    }
+
+    virtual fn unregister_notifier(
+        mut this
+        notifier: &mut UnderlyingClassTypeOf<Core::Notifier>
+    ) {
+        abort()
+    }
+
+    virtual fn did_post_event() { }
+
+    virtual fn register_signal(
+        mut this
+        mut signal: c_int
+        mut f: fn(anon v: c_int) -> void
+    ) -> c_int {
+        abort()
+    }
+
+    virtual fn unregister_signal(
+        mut this
+        mut signal: c_int
+    ) -> bool {
+        abort()
+    }
+}
+
+struct EventLoopImplementationEcore : Core::EventLoopImplementation {
+    private loop_: efl::Efl_Loop
+
+    destructor { }
+
+
+    virtual fn exec(mut this) -> c_int
+    {
+        return efl::efl_loop_begin(.loop_)
+    }
+
+    virtual fn pump(mut this, mut mode: Core::PumpMode) -> usize
+    {
+        let may_block: c_int = match mode { WaitForEvents => 1, else => 0 }
+        return efl::efl_loop_iterate_may_block(.loop_, may_block)
+    }
+
+    virtual fn quit(mut this, mut return_code: c_int) -> void
+    {
+        efl::efl_loop_quit(.loop_, return_code)
+    }
+
+    virtual fn wake(mut this) -> void
+    {
+        // FIXME: wakeup?
+    }
+
+    virtual fn post_event(
+        mut this
+        mut receiver: &mut UnderlyingClassTypeOf<Core::Object>
+        mut event: AK::NonnullOwnPtr<Core::Event>
+    ) -> void
+    {
+    }
+
+    virtual fn unquit(mut this) -> void
+    {
+
+    }
+
+    virtual fn was_exit_requested(mut this) -> bool
+    {
+        return false
+    }
+
+    virtual fn notify_forked_and_in_child(mut this) -> void
+    {
+
+    }
+}
