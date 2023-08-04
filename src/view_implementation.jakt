@@ -1,6 +1,15 @@
 import extern "LibWebView/ViewImplementation.h"
 import extern "LibGfx/Font/FontDatabase.h"
 
+import extern "AK/String.h" {
+    namespace AK {
+        [[name=String]]
+        struct ActualString {
+            extern fn bytes_as_string_view(this) -> StringView
+        }
+    }
+}
+
 class ViewImpl : WebView::ViewImplementation {
     public fn create() throws -> ViewImpl {
         mut impl = ViewImpl(WebView::UseJavaScriptBytecode::Yes)
@@ -93,7 +102,7 @@ class ViewImpl : WebView::ViewImplementation {
     virtual fn notify_server_did_request_alert(
         mut this
         mut badge: AK::Badge<UnderlyingClassTypeOf<WebView::WebContentClient>>
-        message: &AK::String
+        message: &AK::ActualString
     ) {
         eprintln("notify_server_did_request_alert")
     }
@@ -101,7 +110,7 @@ class ViewImpl : WebView::ViewImplementation {
     virtual fn notify_server_did_request_confirm(
         mut this
         mut badge: AK::Badge<UnderlyingClassTypeOf<WebView::WebContentClient>>
-        message: &AK::String
+        message: &AK::ActualString
     ) {
         eprintln("notify_server_did_request_confirm")
     }
@@ -109,8 +118,8 @@ class ViewImpl : WebView::ViewImplementation {
     virtual fn notify_server_did_request_prompt(
         mut this
         mut badge: AK::Badge<UnderlyingClassTypeOf<WebView::WebContentClient>>
-        message: &AK::String
-        default_: &AK::String
+        message: &AK::ActualString
+        default_: &AK::ActualString
     ) {
         eprintln("notify_server_did_request_prompt")
     }
@@ -118,7 +127,7 @@ class ViewImpl : WebView::ViewImplementation {
     virtual fn notify_server_did_request_set_prompt_text(
         mut this
         mut badge: AK::Badge<UnderlyingClassTypeOf<WebView::WebContentClient>>
-        message: &AK::String
+        message: &AK::ActualString
     ) {
         eprintln("notify_server_did_request_set_prompt_text")
     }

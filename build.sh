@@ -19,7 +19,6 @@ cmake --build "$lagom_build_dir"
 ${JAKT} ${1:-src/main.jakt} \
     -J "$(nproc)" \
     -d \
-    -I "${JAKT_HOME}/runtime" \
     -I /opt/clang/lib/clang/17/include \
     $(pkg-config --cflags --libs elementary | sed -e 's/-pthread/-lpthread/g') \
     -I "$lagom_source_dir" \
@@ -27,6 +26,7 @@ ${JAKT} ${1:-src/main.jakt} \
     -I "$lagom_build_dir/Userland/Libraries" \
     -I "$lagom_build_dir" \
     -L "$lagom_build_dir/lib" \
+    -I "${JAKT_HOME}/runtime" \
     -Wl-rpath="$lagom_build_dir/lib" \
     -llagom-core -llagom-gfx -llagom-webview -llagom-ipc \
     --ak-is-my-only-stdlib \

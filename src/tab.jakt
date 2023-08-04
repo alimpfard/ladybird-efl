@@ -1,65 +1,59 @@
 import view_implementation { ViewImpl }
 
-import extern c "Elementary.h" as efl before_include define { EFL_BETA_API_SUPPORT = "1" }
-import extern c "Efl_Ui.h" {
-    extern fn efl_ui_tab_pager_class_get() -> raw efl::_Eo_Opaque
-    extern fn efl_ui_tab_page_class_get() -> raw efl::_Eo_Opaque
-    extern fn efl_ui_selectable_selected_set(anon obj: raw efl::_Eo_Opaque, anon selected: c_int)
-    extern fn efl_ui_tab_page_tab_bar_item_get(anon obj: raw efl::_Eo_Opaque) -> raw efl::_Eo_Opaque
-    extern fn efl_ui_tab_bar_default_item_icon_set(anon obj: raw efl::_Eo_Opaque, anon name: raw c_char)
-} before_include define { EFL_BETA_API_SUPPORT = "1" }
+import extern c "Elementary.h" before_include define { EFL_BETA_API_SUPPORT = "1" }
+import extern c "Efl_Ui.h" before_include define { EFL_BETA_API_SUPPORT = "1" }
 
 struct TabPager {
-    widget: raw efl::_Eo_Opaque
-    items: [raw efl::_Eo_Opaque]
+    widget: raw _Eo_Opaque
+    items: [raw _Eo_Opaque]
     views: [ViewImpl]
     active: usize? = None
 
-    fn create(anon parent: raw efl::_Eo_Opaque, top_bar_height: c_int) throws -> TabPager
+    fn create(anon parent: raw _Eo_Opaque, top_bar_height: c_int) throws -> TabPager
     {
-        let added = efl::_efl_add_internal_start(
+        let added = _efl_add_internal_start(
             file: "".c_string(), line: 0
             klass_id: efl_ui_tab_pager_class_get()
             parent
-            ref: efl::EINA_FALSE
-            is_fallback: efl::EINA_FALSE
+            ref: EINA_FALSE
+            is_fallback: EINA_FALSE
         )
-        efl::efl_gfx_hint_weight_set(added, efl::EVAS_HINT_EXPAND, efl::EVAS_HINT_EXPAND)
-        efl::efl_gfx_hint_align_set(added, efl::EVAS_HINT_FILL, 0.0)
-        efl::efl_gfx_hint_size_max_set(added, efl::_Eina_Size2D(w: -1, h: top_bar_height))
-        let tab_pager = efl::_efl_add_end(added, is_ref: efl::EINA_FALSE, is_fallback: efl::EINA_FALSE)
+        efl_gfx_hint_weight_set(added, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND)
+        efl_gfx_hint_align_set(added, EVAS_HINT_FILL, 0.0)
+        efl_gfx_hint_size_max_set(added, _Eina_Size2D(w: -1, h: top_bar_height))
+        let tab_pager = _efl_add_end(added, is_ref: EINA_FALSE, is_fallback: EINA_FALSE)
 
-        efl::evas_object_hide(tab_pager)
+        evas_object_hide(tab_pager)
 
         return TabPager(widget: tab_pager, items: [], views: [], active: None)
     }
 
     fn add_tab(mut this, title: String, icon: String? = None) throws -> usize
     {
-        let added_tab = efl::_efl_add_internal_start(
+        let added_tab = _efl_add_internal_start(
             file: "".c_string(), line: 0
             klass_id: efl_ui_tab_page_class_get()
             parent: .widget
-            ref: efl::EINA_FALSE
-            is_fallback: efl::EINA_FALSE
+            ref: EINA_FALSE
+            is_fallback: EINA_FALSE
         )
-        let tab = efl::_efl_add_end(added_tab, is_ref: efl::EINA_FALSE, is_fallback: efl::EINA_FALSE)
+        let tab = _efl_add_end(added_tab, is_ref: EINA_FALSE, is_fallback: EINA_FALSE)
 
         let item = efl_ui_tab_page_tab_bar_item_get(tab)
-        efl::efl_text_set(item, title.c_string())
+        efl_text_set(item, title.c_string())
         if icon is Some(name) {
             efl_ui_tab_bar_default_item_icon_set(item, name.c_string())
         }
 
-        efl::efl_pack_end(.widget, tab)
+        efl_pack_end(.widget, tab)
 
         .items.push(tab)
         .views.push(ViewImpl::create())
 
         if .items.size() > 1 {
-            efl::evas_object_show(.widget)
+            evas_object_show(.widget)
         } else {
-            efl::evas_object_hide(.widget)
+            evas_object_hide(.widget)
             .switch_to(.items.size() - 1)
         }
 
@@ -73,11 +67,11 @@ struct TabPager {
         }
 
         let item = efl_ui_tab_page_tab_bar_item_get(.items[tab_id])
-        efl_ui_selectable_selected_set(item, efl::EINA_TRUE)
+        efl_ui_selectable_selected_set(item, EINA_TRUE)
         .active = tab_id
     }
 
-    fn tab_item(this, anon tab_id: usize) -> raw efl::_Eo_Opaque
+    fn tab_item(this, anon tab_id: usize) -> raw _Eo_Opaque
     {
         return .items[tab_id]
     }

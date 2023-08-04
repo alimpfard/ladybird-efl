@@ -1,21 +1,9 @@
 import jakt::platform::utility { null }
 import tab { TabPager }
+import util { bitcast, convert_to }
+import event_loop { EventLoopImplementationEcore, EventLoopManagerEcore }
 
 import extern c "Elementary.h" before_include define { EFL_BETA_API_SUPPORT = "1" }
-
-fn bitcast<U, T>(anon x: T) -> U
-{
-    mut res = null<U>()
-    unsafe { cpp { "memcpy(&res, &x, sizeof x);" } }
-    return res
-}
-
-fn convert_to<U, T>(anon x: T) -> U
-{
-    mut res = 0 as! U
-    unsafe { cpp { "res = static_cast<decltype(res)>(x);" } }
-    return res
-}
 
 fn data_dir() throws -> String
 {

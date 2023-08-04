@@ -1,11 +1,34 @@
-import extern c "Elementary.h" as efl
+import extern c "Elementary.h" before_include define { EFL_BETA_API_SUPPORT = "1" }
 import extern "LibCore/EventLoopImplementation.h"
+import util { bitcast }
+import nnrp { AddRvalueReference, NonnullOwnPtr, make_1 }
+
+class Timer {
+    public delay_ms: c_int
+    public should_reload: bool
+    public should_fire_when_not_visible: bool
+    public ecore_timer: raw Ecore_Timer
+
+    public fn fire(this) {
+        eprintln("Timer fired!")
+    }
+}
 
 struct EventLoopManagerEcore : Core::EventLoopManager {
-    destructor { }
+    main_loop: raw Efl_Loop
+    timers: [usize:Timer]
+    last_timer_id: usize = 0
 
-    virtual fn make_implementation(mut this) -> AK::NonnullOwnPtr<Core::EventLoopImplementation> {
-        abort()
+    virtual fn make_implementation(mut this) -> NonnullOwnPtr<Core::EventLoopImplementation> {
+        let loop_internal = _efl_add_internal_start(
+            file: (try "")!.c_string(), line: 0
+            klass_id: EFL_LOOP_CLASS
+            parent: .main_loop
+            ref: EINA_FALSE
+            is_fallback: EINA_FALSE
+        )
+        let loop_ = _efl_add_end(loop_internal, is_ref: EINA_FALSE, is_fallback: EINA_FALSE)
+        return make_1<Core::EventLoopImplementationEcore>(loop_)
     }
 
     virtual fn register_timer(
@@ -15,14 +38,51 @@ struct EventLoopManagerEcore : Core::EventLoopManager {
         mut should_reload: bool
         mut should_fire_when_not_visible: Core::TimerShouldFireWhenNotVisible
     ) -> c_int {
-        abort()
+        let timer_id = .last_timer_id++
+
+        try {
+            let timer_internal = _efl_add_internal_start(
+                file: "".c_string(), line: 0
+                klass_id: EFL_LOOP_TIMER_CLASS
+                parent: .main_loop
+                ref: EINA_FALSE
+                is_fallback: EINA_FALSE
+            )
+            let timer_object = _efl_add_end(timer_internal, is_ref: EINA_FALSE, is_fallback: EINA_FALSE)
+            let timer = Timer(
+                delay_ms: milliseconds
+                should_reload
+                should_fire_when_not_visible: false // FIXME.
+                ecore_timer: timer_object
+            )
+            .timers.set(timer_id, timer)
+
+            efl_event_callback_priority_add(
+                timer_object
+                EFL_LOOP_TIMER_EVENT_TIMER_TICK
+                EFL_CALLBACK_PRIORITY_DEFAULT
+                fn(data: raw void, event: raw let Efl_Event) -> void {
+                    let timer = unsafe *bitcast<raw Timer>(data)
+                    timer.fire()
+                }
+                bitcast<raw void>(&raw timer)
+            )
+        } catch e {
+            eprintln("Failed to create timer: {}", e)
+            return -1
+        }
+
+        return timer_id as! c_int
     }
 
     virtual fn unregister_timer(
         mut this
         mut timer_id: c_int
     ) -> bool {
-        abort()
+        let timer = .timers[timer_id as! usize]
+        efl_del(timer.ecore_timer)
+        .timers.remove(timer_id as! usize)
+        return true
     }
 
     virtual fn register_notifier(
@@ -39,7 +99,7 @@ struct EventLoopManagerEcore : Core::EventLoopManager {
         abort()
     }
 
-    virtual fn did_post_event() { }
+    virtual fn did_post_event(mut this) { }
 
     virtual fn register_signal(
         mut this
@@ -47,36 +107,40 @@ struct EventLoopManagerEcore : Core::EventLoopManager {
         mut f: fn(anon v: c_int) -> void
     ) -> c_int {
         abort()
+        return 0
     }
 
     virtual fn unregister_signal(
         mut this
         mut signal: c_int
-    ) -> bool {
-        abort()
+    ) {
     }
 }
 
 struct EventLoopImplementationEcore : Core::EventLoopImplementation {
-    private loop_: efl::Efl_Loop
-
-    destructor { }
-
+    private loop_: raw Efl_Loop
 
     virtual fn exec(mut this) -> c_int
     {
-        return efl::efl_loop_begin(.loop_)
+        let quit_value = efl_loop_begin(.loop_)
+        mut value: c_int = 0
+        eina_value_pget(quit_value, bitcast<raw void>(&raw value))
+        return value
     }
 
     virtual fn pump(mut this, mut mode: Core::PumpMode) -> usize
     {
         let may_block: c_int = match mode { WaitForEvents => 1, else => 0 }
-        return efl::efl_loop_iterate_may_block(.loop_, may_block)
+        return efl_loop_iterate_may_block(.loop_, may_block) as! usize
     }
 
     virtual fn quit(mut this, mut return_code: c_int) -> void
     {
-        efl::efl_loop_quit(.loop_, return_code)
+        mut quit_value = eina_value_new(EINA_VALUE_TYPE_INT)
+        defer eina_value_free(quit_value)
+
+        eina_value_pset(quit_value, bitcast<raw void>(&raw return_code))
+        efl_loop_quit(.loop_, unsafe *quit_value)
     }
 
     virtual fn wake(mut this) -> void
@@ -86,8 +150,8 @@ struct EventLoopImplementationEcore : Core::EventLoopImplementation {
 
     virtual fn post_event(
         mut this
-        mut receiver: &mut UnderlyingClassTypeOf<Core::Object>
-        mut event: AK::NonnullOwnPtr<Core::Event>
+        receiver: &mut UnderlyingClassTypeOf<Core::Object>
+        mut event: AddRvalueReference<NonnullOwnPtr<Core::Event>>
     ) -> void
     {
     }
@@ -97,7 +161,7 @@ struct EventLoopImplementationEcore : Core::EventLoopImplementation {
 
     }
 
-    virtual fn was_exit_requested(mut this) -> bool
+    virtual fn was_exit_requested(this) -> bool
     {
         return false
     }
